@@ -13,20 +13,18 @@ GoogleMap.prototype = {
     init: function(){
         var self = this;
 
+        // 맵에 사용자 클릭 처리 (주변 place 정보 표시)
         self.map.addListener('click', function(event){
             self.clickListener(event);
         });
 
+        // 맵에 검색창을 표시하여 클릭 외에 또 다른 방법으로 place 찾기 가능
         var mapSearchInput = $('#map__search');
         mapSearchInput.css('display','block');
         self.searchBox = new google.maps.places.SearchBox(mapSearchInput[0]);
         self.map.controls[google.maps.ControlPosition.TOP_LEFT].push(mapSearchInput[0]);
-        self.map.addListener('bounds_changed', function() {
-            self.searchBox.setBounds(self.map.getBounds());
-        });
-        self.searchBox.addListener('places_changed', function(){
-            self.processSearchBox();
-        });
+        self.map.addListener('bounds_changed', event => self.searchBox.setBounds(self.map.getBounds()));
+        self.searchBox.addListener('places_changed', event => self.processSearchBox());
 
     },
     clickListener: function(event) {
@@ -52,16 +50,6 @@ GoogleMap.prototype = {
             self.updatePlaceList(place.name, place);
         });
     },
-    showNearbyInfoWindow: function(results, location) {
-        var content = $('<div class="selectWindow"></div>');
-        content.append($('<ul id="placeNames"></ul>'));
-        for(var place of results){
-            content.append($('<li><a href="#" id="' + place.id + '">' + place.name + '</a></li>'));
-        }
-        this.infoWindow.setContent(content[0]);
-        this.infoWindow.setPosition(location);
-        this.infoWindow.open(this.map);
-    },
     processNearbyInfoWindow: function(results) {
         var self = this;
         var city = results[0].name;
@@ -81,6 +69,16 @@ GoogleMap.prototype = {
                 }
             })(place.name + "," + city));
         }
+    },
+    showNearbyInfoWindow: function(results, location) {
+        var content = $('<div class="selectWindow"></div>');
+        content.append($('<ul id="placeNames"></ul>'));
+        for(var place of results){
+            content.append($('<li><a href="#" id="' + place.id + '">' + place.name + '</a></li>'));
+        }
+        this.infoWindow.setContent(content[0]);
+        this.infoWindow.setPosition(location);
+        this.infoWindow.open(this.map);
     },
     showMarkerInfoWindow: function(placeTitle, place_id) {
         var self = this;
@@ -177,7 +175,6 @@ GoogleMap.prototype = {
                 });
         });
     },
-
     showPlaceImgSlides: function(photoSlideDiv, photos){
         var self = this;
         photoSlideDiv.append($('<a id="left-floating-btn" href="#">❮</a>'));
@@ -188,12 +185,8 @@ GoogleMap.prototype = {
         }
         self.slideIndex = -1;
         self.showNextImage(true);
-        $('#left-floating-btn').click(function() {
-            self.showNextImage(false);
-        });
-        $('#right-floating-btn').click(function() {
-            self.showNextImage(true);
-        });
+        $('#left-floating-btn').click(event => self.showNextImage(false));
+        $('#right-floating-btn').click(event => self.showNextImage(true));
     },
     showNextImage: function(isNext){
         var imgs = document.getElementsByClassName('photoSlides');
@@ -256,7 +249,6 @@ GoogleMap.prototype = {
             if(!found) wikiDiv.empty();
             clearTimeout(wikiRequestTimeout);
         });
-
     },
     createMapMarker: function(placeTitle, placeData) {
         var self = this;
@@ -303,6 +295,4 @@ GoogleMap.prototype = {
         }
         else this.map.setCenter(location);
     },
-
-
 };
